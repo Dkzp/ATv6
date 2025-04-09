@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Garagem Inteligente v6 (Salva Img - Risco Quota)</title> <!-- Nova Versão -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Estilos Gerais (Mantidos como antes) */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; line-height: 1.6; padding: 15px; background-color: #f8f9fa; color: #343a40; }
+        #container { max-width: 1000px; margin: 20px auto; background: #fff; border: 1px solid #dee2e6; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-radius: 8px; }
+        h1, h2, h3, h4 { color: #212529; margin-bottom: 0.75em;}
+        h1 { text-align: center; margin-bottom: 1.2em; color: #007bff; font-weight: 600;}
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 0.4em; margin-top: 0; font-size: 1.6em;}
+        h3 { font-size: 1.3em; color: #495057; }
+        h4 { font-size: 1.1em; color: #6c757d; margin-bottom: 0.5em; }
+
+        /* Abas de Navegação */
+        #abas-navegacao { text-align: center; margin-bottom: 25px; border-bottom: 1px solid #e9ecef; padding-bottom: 15px;}
+        #abas-navegacao button { background-color: #6c757d; }
+        #abas-navegacao button.aba-ativa { background-color: #007bff; }
+
+        /* Seções Principais */
+        .secao-principal { display: none; } .secao-principal.ativa { display: block; }
+
+        /* Menu Dinâmico de Veículos */
+        #menu-veiculos { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #dee2e6; text-align: center; min-height: 40px; }
+        #menu-veiculos button { margin: 5px 8px; background-color: #17a2b8; }
+        #menu-veiculos button.veiculo-ativo { background-color: #0056b3; font-weight: bold; box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5); }
+        #menu-veiculos span { color: #6c757d; font-style: italic; }
+
+        /* Área ÚNICA de Exibição do Veículo */
+        #veiculo-display-area { border: 1px solid #e0e0e0; padding: 25px; margin-bottom: 25px; border-radius: 8px; background-color: #f1f3f5; min-height: 400px;}
+        #veiculo-display-area .placeholder { text-align: center; color: #6c757d; padding: 50px; font-size: 1.2em;}
+        .veiculo-renderizado { display: grid; grid-template-columns: 200px 1fr; gap: 30px; }
+         @media (max-width: 800px) { .veiculo-renderizado { grid-template-columns: 1fr; } }
+        .coluna-imagem-info { display: flex; flex-direction: column; align-items: center; }
+        .coluna-acoes-manutencao { display: flex; flex-direction: column; }
+        .coluna-imagem-info img.veiculo-imagem { max-width: 100%; height: auto; display: block; border-radius: 4px; margin-bottom: 15px; border: 1px solid #eee; max-height: 160px; object-fit: contain; background-color: #fff;}
+        .informacoes-veiculo { width: 100%; margin-bottom: 20px; background-color: #fff; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6; text-align: center; }
+        .informacoes-veiculo p { margin: 8px 0; font-size: 0.95em; }
+        .info-label { font-weight: 500; color: #495057; margin-right: 5px; }
+
+        /* Seções Internas */
+        .edicao-veiculo, .agendamento-section, .historico-section, #add-veiculo-section { margin-top: 25px; border: 1px solid #ced4da; padding: 20px; border-radius: 6px; background-color: #fff; }
+        .edicao-veiculo h3, .agendamento-section h4, .historico-section h4, #add-veiculo-section h2 { margin-top: 0; }
+        #add-veiculo-section { background-color: #e9ecef; }
+
+        /* Notificações */
+        #notificacoes-area, #cnh-alertas-area { display: none; margin-bottom: 20px; padding: 15px; border-radius: 5px; }
+        #notificacoes-area { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        #cnh-alertas-area { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        #notificacoes-area ul, #cnh-alertas-area ul { list-style: none; padding: 0; margin: 0;}
+        #notificacoes-area li, #cnh-alertas-area li { padding: 6px 0; border-bottom: 1px dashed rgba(0,0,0,0.1); font-size: 0.95em;}
+        #notificacoes-area li:last-child, #cnh-alertas-area li:last-child { border-bottom: none; }
+        #notificacoes-area h4, #cnh-alertas-area h4 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em;}
+
+        /* Formulários */
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9em; color: #495057;}
+        input[type="text"], input[type="number"], input[type="file"], input[type="date"], input[type="time"], textarea, select { width: 100%; padding: 10px 12px; margin-bottom: 15px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
+        input:focus, textarea:focus, select:focus { border-color: #80bdff; outline: 0; box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Botões */
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; font-size: 1em; font-weight: 500; }
+        button:hover { background-color: #0056b3; } button:active { transform: scale(0.97); } button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        button[data-acao="desligar"] { background-color: #dc3545; } button[data-acao="desligar"]:hover { background-color: #c82333; }
+        button[data-acao="ativarTurbo"] { background-color: #ffc107; color: #212529;} button[data-acao="ativarTurbo"]:hover { background-color: #e0a800; }
+        button[data-acao="carregar"] { background-color: #17a2b8; } button[data-acao="carregar"]:hover { background-color: #117a8b;}
+        .salvar-veiculo-btn { background-color: #28a745;} .salvar-veiculo-btn:hover { background-color: #1e7e34;} /* Edição */
+        #adicionar-veiculo-btn { background-color: #28a745;} #adicionar-veiculo-btn:hover { background-color: #1e7e34;} /* Adição */
+        .agendar-manutencao-btn { background-color: #6f42c1; } .agendar-manutencao-btn:hover { background-color: #5a379b; }
+        .btn-limpar-historico { background-color: #fd7e14; font-size: 0.8em; padding: 4px 8px; float: right; margin: 0;} .btn-limpar-historico:hover { background-color: #e66a0a; }
+        .btn-excluir-veiculo { background-color: #dc3545; font-size: 0.9em; padding: 6px 12px; margin-top: 15px; } .btn-excluir-veiculo:hover { background-color: #c82333; }
+
+        /* Componentes Visuais */
+        .acoes-veiculo { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ccc; }
+        .barra-aceleracao { width: 100%; height: 25px; background-color: #e9ecef; border: 1px solid #ced4da; margin-top: 15px; border-radius: 5px; overflow: hidden; }
+        .barra-progresso { height: 100%; width: 0; background-color: #28a745; transition: width 0.3s ease-out; }
+        .status-ligado { color: #28a745; font-weight: bold; } .status-desligado { color: #dc3545; font-weight: bold; }
+        .velocimetro { width: 120px; height: 60px; border: 3px solid #adb5bd; border-bottom: none; border-top-left-radius: 60px; border-top-right-radius: 60px; position: relative; overflow: hidden; margin: 15px auto 10px auto; background: #fff;}
+        .ponteiro { position: absolute; bottom: 0; left: 50%; width: 3px; height: 55px; background-color: #dc3545; transform-origin: bottom center; transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); transform: translateX(-50%) rotate(-90deg); border-radius: 2px 2px 0 0; }
+
+        /* Histórico e Agendamentos */
+        .historico-section ul, #agendamentos-futuros-lista ul { list-style: none; padding-left: 0; margin-top: 10px; }
+        .historico-section li, #agendamentos-futuros-lista li { background-color: #e9ecef; border: 1px solid #dee2e6; padding: 10px 12px; margin-bottom: 8px; border-radius: 4px; font-size: 0.9em; }
+        #agendamentos-futuros { background-color: #e2f3f5; border-color: #badce3; } #agendamentos-futuros h3 { color: #0c5460; } #agendamentos-futuros li { background-color: #fff; border-color: #badce3;}
+        .lista-historico { clear: both; }
+
+        /* Carga Caminhão */
+        .carga-container { display: flex; align-items: center; margin-bottom: 15px; gap: 10px;}
+        .carga-container input[type="number"] { flex-grow: 1; margin-bottom: 0; }
+        .carga-container label { margin-bottom: 0; flex-shrink: 0;}
+        .carga-container button { flex-shrink: 0;}
+
+        /* Preview Imagem */
+        .imagem-preview-container { margin-top: 10px; margin-bottom: 15px; text-align: center; }
+        .imagem-preview { max-width: 150px; max-height: 100px; display: none; margin: 5px auto; border: 1px dashed #ccc; padding: 3px; }
+        .imagem-preview-container small { font-size: 0.8em; color: #6c757d; display: block; }
+
+        /* Grid para formulários */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+
+    </style>
+</head>
+<body>
+<div id="container">
+
+    <h1><span role="img" aria-label="Garagem">🏢</span> Garagem Inteligente v6</h1>
+
+    <!-- Abas -->
+    <div id="abas-navegacao">
+        <button id="tab-garagem" class="aba-ativa">Ver Garagem</button>
+        <button id="tab-adicionar">Adicionar Veículo</button>
+    </div>
+
+    <!-- Alertas -->
+    <div id="cnh-alertas-area"></div>
+    <div id="notificacoes-area"></div>
+
+    <!-- === SEÇÃO GARAGEM === -->
+    <div id="secao-garagem" class="secao-principal ativa">
+        <h2><span role="img" aria-label="Carro">🚗</span> Minha Garagem</h2>
+        <div id="menu-veiculos"><span>Carregando veículos...</span></div>
+        <div id="veiculo-display-area"><div class="placeholder">Selecione um veículo.</div></div>
+        <div id="agendamentos-futuros">
+            <h3><span role="img" aria-label="Calendário">📅</span> Próximos Agendamentos (Todos)</h3>
+            <div id="agendamentos-futuros-lista"><p>Carregando...</p></div>
+        </div>
+    </div>
+
+    <!-- === SEÇÃO ADICIONAR VEÍCULO === -->
+    <div id="secao-adicionar" class="secao-principal">
+        <div id="add-veiculo-section">
+            <h2><span role="img" aria-label="Sinal de Mais">➕</span> Adicionar Novo Veículo</h2>
+            <form id="form-add-veiculo">
+                <div class="form-grid">
+                    <div><label for="add-modelo">Modelo:*</label><input type="text" id="add-modelo" required placeholder="Ex: Fusca"></div>
+                    <div><label for="add-cor">Cor:</label><input type="text" id="add-cor" placeholder="Ex: Azul"></div>
+                    <div><label for="add-placa">Placa:</label><input type="text" id="add-placa" placeholder="Ex: BRA2E19" pattern="[A-Za-z]{3}[0-9][A-Za-z0-9][0-9]{2}|[A-Za-z]{3}[0-9]{4}" title="Formato antigo (AAA-1234) ou Mercosul (AAA1B23)"></div>
+                    <div><label for="add-ano">Ano:</label><input type="number" id="add-ano" placeholder="Ex: 1975" min="1900" max="2100"></div>
+                    <div><label for="add-tipo">Tipo:*</label><select id="add-tipo" required><option value="" disabled selected>-- Selecione --</option><option value="CarroBase">Carro Comum</option><option value="CarroEsportivo">Esportivo</option><option value="Caminhao">Caminhão</option></select></div>
+                    <div id="add-capacidade-carga-container" style="display: none;"><label for="add-capacidade-carga">Cap. Carga (kg):</label><input type="number" id="add-capacidade-carga" min="0" placeholder="Ex: 10000"></div>
+                    <div><label for="add-cnh">Vencimento CNH:</label><input type="date" id="add-cnh"></div>
+                </div>
+                 <div>
+                    <label for="add-imagem-input">Imagem (Opcional - Padrão por Tipo):</label>
+                    <input type="file" id="add-imagem-input" accept="image/*">
+                    <div class="imagem-preview-container"> <img class="imagem-preview" id="add-imagem-preview" src="#" alt="Prévia da imagem a adicionar"> </div>
+                    <small>Se não escolher, uma imagem padrão será usada.</small>
+                 </div>
+                 <button type="submit" id="adicionar-veiculo-btn">Adicionar à Garagem</button>
+            </form>
+        </div>
+    </div>
+
+</div> <!-- Fim #container -->
+
+<!-- Áudios -->
+<audio id="som-ligar" src="som_carro_ligando.mp3" preload="auto"></audio>
+<audio id="som-buzinar" src="buzina.mp3" preload="auto"></audio>
+<audio id="som-acelerar" src="aceleracao.mp3" preload="auto"></audio>
+<audio id="som-frear" src="frear.mp3" preload="auto"></audio>
+<audio id="som-desligar" src="desligar.mp3" preload="auto"></audio>
+
+<!-- Template para a Área de Exibição -->
+<template id="veiculo-template">
+    <div class="veiculo-renderizado" data-template-id>
+        <!-- Coluna Esquerda: Imagem e Informações -->
+        <div class="coluna-imagem-info">
+            <h2 class="veiculo-titulo">Nome Veículo</h2>
+            <img class="veiculo-imagem" src="default_car.png" alt="Imagem do Veículo">
+            <div class="informacoes-veiculo">
+                <p><span class="info-label">Status:</span> <span class="veiculo-status status-desligado">Desligado</span></p>
+                <p><span class="info-label">Velocidade:</span> <span class="veiculo-velocidade">0</span> km/h</p>
+                <p><span class="info-label">Placa:</span> <span class="veiculo-placa">-</span></p>
+                <p><span class="info-label">Ano:</span> <span class="veiculo-ano">-</span></p>
+                <p class="veiculo-info-extra"></p>
+                <p class="veiculo-cnh-info"></p>
+                <div class="velocimetro"><div class="veiculo-ponteiro ponteiro"></div></div>
+                <div class="barra-aceleracao"><div class="veiculo-barra-progresso barra-progresso"></div></div>
+                 <button class="btn-excluir-veiculo" data-acao="excluir">🗑️ Excluir Veículo</button>
+            </div>
+            <!-- Edição -->
+             <div class="edicao-veiculo">
+                <h3><span role="img" aria-label="Lápis">✏️</span> Editar Detalhes</h3>
+                 <label>Modelo:</label> <input type="text" class="edit-modelo-veiculo">
+                 <label>Cor:</label> <input type="text" class="edit-cor-veiculo">
+                 <label>Placa:</label> <input type="text" class="edit-placa-veiculo" pattern="[A-Za-z]{3}[0-9][A-Za-z0-9][0-9]{2}|[A-Za-z]{3}[0-9]{4}" title="...">
+                 <label>Ano:</label> <input type="number" class="edit-ano-veiculo" min="1900" max="2100">
+                 <label>Venc. CNH:</label> <input type="date" class="edit-cnh-veiculo">
+                 <label>Imagem:</label>
+                 <input type="file" class="edit-imagem-input" accept="image/*">
+                 <div class="imagem-preview-container">
+                     <img class="imagem-preview edit-imagem-preview" src="#" alt="Prévia nova imagem">
+                     <small style="color: #dc3545; font-weight: bold;">Atenção: Imagens grandes podem falhar ao salvar!</small>
+                 </div>
+                 <button class="salvar-veiculo-btn" data-acao="salvar-edicao">Salvar Todas Edições</button> <!-- Salva tudo -->
+            </div>
+        </div>
+        <!-- Coluna Direita: Ações e Manutenção -->
+        <div class="coluna-acoes-manutencao">
+            <div class="acoes-veiculo">
+                <h3><span role="img" aria-label="Volante">🎮</span> Ações</h3>
+                <button data-acao="ligar">Ligar</button>
+                <button data-acao="acelerar">Acelerar</button>
+                <button data-acao="frear">Frear</button>
+                <button data-acao="buzinar">Buzinar</button>
+                <span class="acao-extra"></span>
+                <button data-acao="desligar">Desligar</button>
+            </div>
+            <div class="agendamento-section">
+                 <h4><span role="img" aria-label="Ferramenta">🔧</span> Agendar Manutenção</h4>
+                 <form class="form-agendamento">
+                     <label>Data:*</label><input type="date" class="agendamento-data" required>
+                     <label>Hora:</label><input type="time" class="agendamento-hora">
+                     <label>Tipo:*</label><input type="text" class="agendamento-tipo" required placeholder="...">
+                     <label>Custo (R$):</label><input type="number" class="agendamento-custo" step="0.01" min="0" placeholder="Opcional">
+                     <label>Obs:</label><textarea class="agendamento-obs" placeholder="Opcional"></textarea>
+                     <button type="submit" class="agendar-manutencao-btn">Agendar</button>
+                 </form>
+            </div>
+            <div class="historico-section">
+                 <h4>Histórico <button class="btn-limpar-historico" title="Limpar Histórico">🗑️ Limpar</button></h4>
+                 <div class="lista-historico"><p>Carregando...</p></div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script src="script.js"></script>
+</body>
+</html>
